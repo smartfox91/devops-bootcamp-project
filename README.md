@@ -358,7 +358,7 @@ This playbook installs and configures Prometheus and Grafana on the Monitoring S
   
 The final documentation published via GitHub Pages **must** include the final, working URLs:
 
-- **Web application URL:** 'https://web.adlipunt.cc'
-- **Monitoring URL:** 'https://monitoring.adlipunt.cc'
-- **GitHub repository URL:** 'https://github.com/smartfox91/devops-bootcamp-project'
-- **GitHub Page URL:** 'https://smartfox91.github.io/devops-bootcamp-project/'
+- **Web application URL:** https://web.adlipunt.cc
+- **Monitoring URL:** https://monitoring.adlipunt.cc
+- **GitHub repository URL:** https://github.com/smartfox91/devops-bootcamp-project
+- **GitHub Page URL:** https://smartfox91.github.io/devops-bootcamp-project/
