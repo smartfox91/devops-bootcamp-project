@@ -1,6 +1,6 @@
 ---
 - name: Install Docker Engine on Web and Monitoring Servers
-  hosts: web-server, monitoring-server
+  hosts: all
   become: yes
   tasks:
     - name: Update apt cache
