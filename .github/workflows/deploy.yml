@@ -49,4 +49,4 @@ jobs:
         aws ssm send-command \
           --document-name "AWS-RunShellScript" \
           --targets "Key=tag:Name,Values=Web Server" \
-          --parameters 'commands=["aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin YOUR_ACCOUNT_ID.dkr.ecr.ap-southeast-1.amazonaws.com", "docker pull YOUR_ACCOUNT_ID.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-yourname:latest", "docker stop my-app || true", "docker rm my-app || true", "docker run -d --name my-app -p 80:80 990060748140.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-mohdadlijaaffar:latest"]'
+          --parameters 'commands=["aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 990060748140.dkr.ecr.ap-southeast-1.amazonaws.com", "docker pull 990060748140.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-mohdadlijaaffar:latest", "docker stop my-app || true", "docker rm my-app || true", "docker run -d --name my-app -p 80:80 990060748140.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-mohdadlijaaffar:latest"]'
