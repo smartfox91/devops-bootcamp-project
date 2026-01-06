@@ -30,7 +30,7 @@ jobs:
         ECR_REPOSITORY: devops-bootcamp/final-project-mohdadlijaaffar
         IMAGE_TAG: latest
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --build-arg USER_NAME="MOHD ADLI BIN JAAFFAR" .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   deploy:
@@ -48,11 +48,12 @@ jobs:
       run: |
         aws ssm send-command \
           --document-name "AWS-RunShellScript" \
-          --targets "Key=tag:Name,Values=Web Server" \
+          --targets "Key=tag:Name,Values=web-server" \
+          --comment "Deploying new version for Mohd Adli Bin Jaaffar" \
           --parameters 'commands=[
             "aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 990060748140.dkr.ecr.ap-southeast-1.amazonaws.com",
             "docker pull 990060748140.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-mohdadlijaaffar:latest",
             "docker stop my-app || true",
             "docker rm my-app || true",
-            "docker run -d --name my-app -p 80:80 990060748140.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-mohdadlijaaffar:latest"
+            "docker run -d --restart always --name my-app -p 80:80 990060748140.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-mohdadlijaaffar:latest"
           ]'
