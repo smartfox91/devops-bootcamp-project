@@ -76,6 +76,14 @@ resource "aws_security_group" "web_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Node Exporter (Allow from Monitoring Server IP)
+  ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.136/32"] 
+  }
+
   # Port 22: Allow from VPC subnet only (10.0.0.0/24)
   ingress {
     from_port   = 22
