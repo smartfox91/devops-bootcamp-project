@@ -1,5 +1,5 @@
 - name: Deploy Monitoring Stack
-  hosts: monitor
+  hosts: monitoring-server
   become: yes
   tasks:
     - name: Copy Prometheus Config
