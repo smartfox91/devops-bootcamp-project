@@ -48,5 +48,14 @@
     - name: Run Web App Container
       command: "docker run -d --name my-app -p 80:80 {{ ecr_url }}/{{ repo_name }}:latest"
 
+    # --- Fix for Node Exporter ---
+    - name: Stop running node-exporter
+      command: "docker stop node-exporter"
+      ignore_errors: yes
+
+    - name: Remove old node-exporter
+      command: "docker rm node-exporter"
+      ignore_errors: yes
+
     - name: Run Node Exporter
       command: "docker run -d --name node-exporter -p 9100:9100 prom/node-exporter"
