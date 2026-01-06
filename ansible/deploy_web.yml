@@ -1,5 +1,5 @@
 - name: Deploy Web Application
-  hosts: web-server
+  hosts: webserver
   become: yes
   vars:
     ecr_url: "990060748140.dkr.ecr.ap-southeast-1.amazonaws.com"
