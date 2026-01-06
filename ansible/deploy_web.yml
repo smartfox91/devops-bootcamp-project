@@ -1,0 +1,27 @@
+- name: Deploy Web Application
+  hosts: webservers
+  become: yes
+  vars:
+    ecr_url: "990060748140.dkr.ecr.ap-southeast-1.amazonaws.com"
+    repo_name: "devops-bootcamp/final-project-mohdadlijaaffar"
+    
+  tasks:
+    - name: Login to ECR
+      shell: "aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin {{ ecr_url }}"
+
+    - name: Pull Docker Image
+      command: "docker pull {{ ecr_url }}/{{ repo_name }}:latest"
+
+    - name: Stop running container
+      command: "docker stop my-app"
+      ignore_errors: yes
+
+    - name: Remove old container
+      command: "docker rm my-app"
+      ignore_errors: yes
+
+    - name: Run Web App Container
+      command: "docker run -d --name my-app -p 80:80 {{ ecr_url }}/{{ repo_name }}:latest"
+
+    - name: Run Node Exporter
+      command: "docker run -d --name node-exporter -p 9100:9100 prom/node-exporter"
