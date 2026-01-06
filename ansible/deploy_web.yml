@@ -6,6 +6,31 @@
     repo_name: "devops-bootcamp/final-project-mohdadlijaaffar"
     
   tasks:
+    # --- START OF NEW TASKS ---
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Unzip
+      apt:
+        name: unzip
+        state: present
+
+    - name: Download AWS CLI
+      get_url:
+        url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+        dest: "/tmp/awscliv2.zip"
+
+    - name: Unzip AWS CLI
+      unarchive:
+        src: "/tmp/awscliv2.zip"
+        dest: "/tmp"
+        remote_src: yes
+
+    - name: Install AWS CLI Binary
+      command: /tmp/aws/install --update
+    # --- END OF NEW TASKS ---
+
     - name: Login to ECR
       shell: "aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin {{ ecr_url }}"
 
