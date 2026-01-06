@@ -1,9 +1,3 @@
-Here is the updated `README.md`. I have rewritten it to sound like a real developer’s project log rather than a generic template. I replaced the generic "Troubleshooting" section with a **"Dev Diary: Challenges & Solutions"** section that documents the specific battles we fought and won during this session.
-
-This version tells the story of *your* implementation.
-
----
-
 # Trust Me, I’m a DevOps Engineer — Setup & Deployment Guide
 
 This repository contains the Infrastructure as Code (IaC) and configuration management scripts I used to provision, deploy, and monitor a secure web stack on AWS.
