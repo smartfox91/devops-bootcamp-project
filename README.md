@@ -1,9 +1,113 @@
-This document provides a clear, structured guide to successfully complete the final project, covering Infrastructure as Code (Terraform) and Configuration Management (Ansible), as required by the DevOps Bootcamp.Project Overview
+Trust Me, I’m a DevOps Engineer — Setup & Deployment Guide
 
-- **Project Name:** Trust Me, I’m a DevOps Engineer
-- **Goal:** Design, provision, configure, deploy, monitor, and document a complete DevOps-based system on AWS.
-- **Tools Used:** Terraform, Ansible, AWS (EC2, VPC, S3, ECR, SSM), Docker, Prometheus, Grafana, Cloudflare Tunnel.
-- **Repository URL:** `https://github.com/smartfox91/devops-bootcamp-project`
+This repository provisions, configures and deploys a small web + monitoring stack on AWS using Terraform and Ansible. This guide walks you through prerequisites, infra bootstrap, how to build & push the container image to ECR, CI/CD examples, and how to deploy and monitor the stack.
+
+**Prerequisites**
+- **AWS account** with permissions to create S3, ECR, IAM, VPC, EC2.
+- **Local tools**: `terraform` (>=1.0), `aws` CLI, `docker`, `ansible`, `git`.
+- **AWS CLI profile** configured (examples use `default`).
+
+**Quick environment setup**
+```bash
+aws configure --profile default
+export AWS_REGION=ap-southeast-1
+export AWS_PROFILE=default
+```
+
+**Where code lives**
+- Terraform: [terraform/](terraform/)
+- Ansible: [ansible/](ansible/)
+- Prometheus config and templates: inside `ansible/` and repo root templates.
+
+**1) Terraform backend (S3)**
+- The backend stores state in S3. This project does not use a DynamoDB table for state locking.
+
+- Create the S3 bucket (one-time):
+```bash
+aws s3api create-bucket \
+  --bucket devops-bootcamp-terraform-mohdadlijaaffar \
+  --region ${AWS_REGION} --create-bucket-configuration LocationConstraint=${AWS_REGION} \
+  --profile ${AWS_PROFILE}
+```
+
+**2) Initialize and apply Terraform (safe steps)**
+```bash
+cd terraform
+terraform init
+terraform plan -out=plan.tfplan
+terraform apply "plan.tfplan"
+```
+Notes:
+- Using `-out` and then `terraform apply` with the saved plan guarantees `apply` will perform those exact actions. Running `terraform apply` without `-out` recomputes the plan and may differ.
+
+**3) Build, tag and push Docker image to ECR**
+```bash
+# Log in to ECR
+aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin <account-id>.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+# Build and tag
+docker build -t my-devops-app:latest .
+docker tag my-devops-app:latest <account-id>.dkr.ecr.${AWS_REGION}.amazonaws.com/devops-bootcamp/final-project-yourname:latest
+
+# Push
+docker push <account-id>.dkr.ecr.${AWS_REGION}.amazonaws.com/devops-bootcamp/final-project-yourname:latest
+```
+
+**4) CI/CD (GitHub Actions) — short example**
+- Use actions to build and push images. Either use OIDC role assumption or a GitHub secret with scoped credentials.
+
+Minimal example `.github/workflows/ci.yml` snippet:
+```yaml
+name: Build and Push to ECR
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsECRPush
+          aws-region: ap-southeast-1
+      - run: |
+          aws ecr get-login-password | docker login --username AWS --password-stdin ${ECR_ACCOUNT}
+          docker build -t ${{ env.ECR_URI }}:latest .
+          docker push ${{ env.ECR_URI }}:latest
+```
+
+**5) Deploy with Ansible**
+- Terraform writes an inventory file to `../ansible/inventory.ini` using the template in the `terraform` module (see [terraform/inventory.tf](terraform/inventory.tf#L1-L40)). Ensure that file exists before running playbooks.
+
+Common playbook commands:
+```bash
+ansible-playbook -i ansible/inventory.ini ansible/setup_docker.yml
+ansible-playbook -i ansible/inventory.ini ansible/deploy_web.yml
+ansible-playbook -i ansible/inventory.ini ansible/setup_monitoring.yml
+```
+
+**6) Monitoring & secure access**
+- Prometheus & Grafana run on the monitoring server. Use a Cloudflare Tunnel (`cloudflared`) to expose Grafana without opening ports publicly.
+
+**7) Troubleshooting quick reference**
+- If you see lock-related errors, check your backend configuration; this project uses an S3-only backend.
+- `local_file.private_key_pem` missing: find or create the resource used to write the private key file. Search:
+```bash
+grep -R "private_key_pem" -n . || true
+```
+- `inventory.tftpl` missing: ensure `terraform` module contains the template referenced by `templatefile()`.
+
+**8) Clean up (destroy resources)**
+```bash
+cd terraform
+terraform destroy
+```
+
+**9) Next steps I can help with**
+- Create the S3 backend automatically.
+- Add a ready GitHub Actions workflow and push it to the repo.
+- Validate and fix references in `terraform/inventory.tf` and `terraform/output.tf` and run `terraform plan`.
+
+Tell me which of these you'd like me to do next and I will run it for you.
 
 1. Infrastructure Provisioning (Terraform)  
   
@@ -21,7 +125,6 @@ terraform {
     key            = "devops-bootcamp-project/terraform.tfstate"
     region         = "ap-southeast-1"
     encrypt        = true
-    dynamodb_table = "terraform-lock-table" # Highly recommended for state locking
   }
 }
 ```
