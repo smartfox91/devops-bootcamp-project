@@ -195,7 +195,7 @@
 
     <main class="main-content">
         <h1>Trust Me, I’m a DevOps Engineer</h1>
-        <p class="lead">Setup, Deployment & Monitoring Guide. <span class="badge badge-green">v1.3.0</span></p>
+        <p class="lead">Setup, Deployment & Monitoring Guide. <span class="badge badge-green">v1.4.0</span></p>
         
         <p>This repository provisions, configures, and deploys a small web + monitoring stack on AWS using Terraform and Ansible. It serves as a proof-of-concept for secure, private networking with public exposure via load balancers and tunnels.</p>
 
@@ -272,6 +272,13 @@ export AWS_REGION=ap-southeast-1</code></pre>
         <ul>
             <li><strong>Static Private IPs:</strong> Hardcoded IPs (<code>10.0.0.5</code>, <code>10.0.0.135</code>, <code>10.0.0.136</code>) were used to make the Ansible Inventory predictable.</li>
             <li><strong>IAM Integration:</strong> Every instance is attached to a <code>devops-ssm-role</code> (defined in <code>iam.tf</code>). This grants <strong>AmazonSSMManagedInstanceCore</strong> permissions, allowing me to console into private servers without needing a Bastion Host or SSH keys.</li>
+        </ul>
+
+        <h4>C. Identity & Access (IAM & Keys)</h4>
+        <p>To secure access to the infrastructure and container registry, I provisioned specific identity resources:</p>
+        <ul>
+            <li><strong>ECR Management User (<code>ecruser</code>):</strong> A dedicated IAM user created to handle ECR operations (push/pull permissions) separately from the root account.</li>
+            <li><strong>SSH Key Pair (<code>adli-my-key</code>):</strong> A securely generated key pair used for SSH access to the instances when SSM is not sufficient (e.g., initial debugging).</li>
         </ul>
 
         <h3>4.2 Configuration (Ansible) <span class="badge badge-purple">Automation</span></h3>
