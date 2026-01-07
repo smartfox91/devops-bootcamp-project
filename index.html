@@ -174,6 +174,7 @@
         }
         .badge-green { background-color: #d1fae5; color: #065f46; }
         .badge-blue { background-color: #dbeafe; color: #1e40af; }
+        .badge-purple { background-color: #f3e8ff; color: #6b21a8; }
 
     </style>
 </head>
@@ -186,6 +187,7 @@
             <li><a href="#overview">Architecture Overview</a></li>
             <li><a href="#quickstart">Quick Start</a></li>
             <li><a href="#dev-diary">Dev Diary (Challenges)</a></li>
+            <li><a href="#infra-config">Infra & Configuration</a></li>
             <li><a href="#how-to-run">How to Run</a></li>
             <li><a href="#live-urls">Live URLs</a></li>
         </ul>
@@ -193,7 +195,7 @@
 
     <main class="main-content">
         <h1>Trust Me, I’m a DevOps Engineer</h1>
-        <p class="lead">Setup, Deployment & Monitoring Guide. <span class="badge badge-green">v1.1.0</span></p>
+        <p class="lead">Setup, Deployment & Monitoring Guide. <span class="badge badge-green">v1.3.0</span></p>
         
         <p>This repository provisions, configures, and deploys a small web + monitoring stack on AWS using Terraform and Ansible. It serves as a proof-of-concept for secure, private networking with public exposure via load balancers and tunnels.</p>
 
@@ -233,18 +235,16 @@ export AWS_REGION=ap-southeast-1</code></pre>
         </div>
 
         <h3>Challenge 2: The "Stale Image" Persistency</h3>
-        <p><strong>Problem:</strong> The Web Server refused to show the new version of the app (e.g., name changes) and stubbornly stuck to the old Docker image, even after a successful pipeline run.<br>
-        <strong>Fix:</strong> The "Fresh Start" Protocol. The caching on both local and remote ends was too aggressive. I had to explicitly delete the local image to force a new build, and remove the container on the instance.</p>
+        <p><strong>Problem:</strong> The Web Server refused to show the new version of the app and stuck to the old Docker image.<br>
+        <strong>Fix:</strong> The "Fresh Start" Protocol. I updated the playbook to explicitly stop and remove the old container before starting the new one.</p>
         <div class="code-wrapper">
-            <pre><code># 1. Local: Delete old image & rebuild
-docker rmi <image-id>
-docker build -t my-app .
-docker push ...
+            <pre><code>- name: Stop running container
+  command: "docker stop my-app"
+  ignore_errors: yes
 
-# 2. Remote: Stop & Remove old container
-docker stop my-app
-docker rm my-app
-# (Then run Ansible to pull the fresh image)</code></pre>
+- name: Remove old container
+  command: "docker rm my-app"
+  ignore_errors: yes</code></pre>
         </div>
 
         <h3>Challenge 3: The "Localhost" Monitoring Trap</h3>
@@ -255,7 +255,48 @@ docker rm my-app
             <button class="copy-btn" onclick="copyText('http://10.0.0.136:9090', this)">Copy</button>
         </div>
 
-        <h2 id="how-to-run">4. How to Run</h2>
+        <h2 id="infra-config">4. Infrastructure & Configuration</h2>
+        
+        <h3>4.1 Infrastructure (Terraform) <span class="badge badge-purple">IaC</span></h3>
+        <p>The infrastructure code in <code>terraform/</code> fully automates the AWS environment. Key design decisions include:</p>
+        
+        <h4>A. Network Segmentation (<code>vpc.tf</code>)</h4>
+        <p>I architected a secure VPC (<code>10.0.0.0/24</code>) with strict segregation:</p>
+        <ul>
+            <li><strong>Public Subnet (<code>10.0.0.0/25</code>):</strong> Hosts the Web Server and NAT Gateway. It has a direct route to the Internet Gateway (IGW).</li>
+            <li><strong>Private Subnet (<code>10.0.0.128/25</code>):</strong> Hosts the Ansible Controller and Monitoring Server. These instances have <strong>NO public IPs</strong>. They access the internet (for updates/Docker pull) solely via the NAT Gateway.</li>
+        </ul>
+
+        <h4>B. Compute Strategy (<code>ec2.tf</code>)</h4>
+        <p>I used a <code>for_each</code> loop to modularize the instance creation, ensuring standard tagging and config:</p>
+        <ul>
+            <li><strong>Static Private IPs:</strong> Hardcoded IPs (<code>10.0.0.5</code>, <code>10.0.0.135</code>, <code>10.0.0.136</code>) were used to make the Ansible Inventory predictable.</li>
+            <li><strong>IAM Integration:</strong> Every instance is attached to a <code>devops-ssm-role</code> (defined in <code>iam.tf</code>). This grants <strong>AmazonSSMManagedInstanceCore</strong> permissions, allowing me to console into private servers without needing a Bastion Host or SSH keys.</li>
+        </ul>
+
+        <h3>4.2 Configuration (Ansible) <span class="badge badge-purple">Automation</span></h3>
+        <p>Once Terraform provisions the servers, Ansible takes over to configure them. The setup is broken down into modular playbooks:</p>
+
+        <h4>A. Controller Setup</h4>
+        <p>The <code>ansible.cfg</code> is configured to disable <code>host_key_checking</code>. This is critical for automation, preventing the script from hanging on the "Are you sure you want to connect?" prompt.</p>
+
+        <h4>B. Web Server Deployment (<code>deploy_web.yml</code>)</h4>
+        <p>This playbook handles the full application lifecycle:</p>
+        <ul>
+            <li><strong>Dependency Management:</strong> Manually downloads and installs the AWS CLI v2 using <code>unzip</code> and the official Amazon binary.</li>
+            <li><strong>ECR Authentication:</strong> Uses the installed CLI to authenticate Docker with Amazon ECR.</li>
+            <li><strong>Deployment:</strong> Pulls the latest image and restarts the container using <code>--restart always</code> for high availability.</li>
+            <li><strong>Monitoring Sidecar:</strong> Deploys <code>node-exporter</code> alongside the app to expose system metrics (CPU, RAM, Disk) to Prometheus.</li>
+        </ul>
+
+        <h4>C. Monitoring Stack (<code>deploy_monitor.yml</code>)</h4>
+        <p>This playbook sets up the observability layer on the private server:</p>
+        <ul>
+            <li><strong>Configuration:</strong> Copies a custom <code>prometheus.yml</code> that targets the Web Server's private IP (<code>10.0.0.5:9100</code>).</li>
+            <li><strong>Containers:</strong> Launches <strong>Prometheus</strong> (Data collection) and <strong>Grafana</strong> (Visualization) via Docker.</li>
+        </ul>
+
+        <h2 id="how-to-run">5. How to Run</h2>
         
         <h3>Step 1: Provision Infrastructure</h3>
         <div class="code-wrapper">
@@ -278,7 +319,7 @@ ansible-playbook -i inventory.ini deploy_web.yml
 ansible-playbook -i inventory.ini deploy_monitor.yml</code></pre>
         </div>
 
-        <h2 id="live-urls">5. Live URLs</h2>
+        <h2 id="live-urls">6. Live URLs</h2>
         <p>Access the deployed applications.</p>
 
         <div class="link-box">
