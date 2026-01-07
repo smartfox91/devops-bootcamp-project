@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Project Documentation</title>
+    <style>
+        :root {
+            --primary-color: #2563eb; /* SaaS Blue */
+            --bg-color: #ffffff;
+            --text-color: #374151;
+            --heading-color: #111827;
+            --code-bg: #1f2937;
+            --code-text: #e5e7eb;
+            --border-color: #e5e7eb;
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #f9fafb;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: var(--sidebar-width);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 2rem;
+            background-color: var(--bg-color);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            display: none; /* Hidden on small screens */
+        }
+
+        @media (min-width: 768px) {
+            .sidebar { display: block; }
+        }
+
+        .sidebar h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #9ca3af;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar li { margin-bottom: 0.5rem; }
+
+        .sidebar a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .sidebar a:hover { color: var(--primary-color); }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 2rem 3rem;
+            background-color: #ffffff;
+            max-width: 100%;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            color: var(--heading-color);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        h2 {
+            margin-top: 3rem;
+            font-size: 1.5rem;
+            color: var(--heading-color);
+        }
+
+        h3 {
+            margin-top: 2rem;
+            font-size: 1.25rem;
+            color: var(--heading-color);
+        }
+
+        p { margin-bottom: 1.5rem; }
+
+        /* Links */
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        a:hover { text-decoration: underline; }
+
+        /* Code Blocks & Copy Button */
+        .code-wrapper {
+            position: relative;
+            background-color: var(--code-bg);
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        pre {
+            margin: 0;
+            padding: 1.5rem;
+            overflow-x: auto;
+            color: var(--code-text);
+            font-family: "Menlo", "Monaco", "Courier New", monospace;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: none;
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .copy-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
+
+        /* Link Box styling */
+        .link-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f3f4f6;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .link-box span {
+            font-family: monospace;
+            color: var(--heading-color);
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-green { background-color: #d1fae5; color: #065f46; }
+        .badge-blue { background-color: #dbeafe; color: #1e40af; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <aside class="sidebar">
+        <h3>Contents</h3>
+        <ul>
+            <li><a href="#overview">Architecture Overview</a></li>
+            <li><a href="#quickstart">Quick Start</a></li>
+            <li><a href="#dev-diary">Dev Diary (Challenges)</a></li>
+            <li><a href="#how-to-run">How to Run</a></li>
+            <li><a href="#live-urls">Live URLs</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <h1>Trust Me, I’m a DevOps Engineer</h1>
+        <p class="lead">Setup, Deployment & Monitoring Guide. <span class="badge badge-green">v1.0.0</span></p>
+        
+        <p>This repository provisions, configures, and deploys a small web + monitoring stack on AWS using Terraform and Ansible. It serves as a proof-of-concept for secure, private networking with public exposure via load balancers and tunnels.</p>
+
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 2rem 0;">
+
+        <h2 id="overview">1. Architecture Overview</h2>
+        <p>All infrastructure is provisioned in the <strong>ap-southeast-1 (Singapore)</strong> region.</p>
+        <ul>
+            <li><strong>Infrastructure:</strong> Terraform (VPC, Subnets, EC2, IAM, ECR).</li>
+            <li><strong>Configuration:</strong> Ansible (Docker installation, App deployment, Monitoring setup).</li>
+            <li><strong>Application:</strong> Dockerized web app with custom environment variables.</li>
+            <li><strong>Monitoring:</strong> Prometheus & Grafana (node_exporter).</li>
+        </ul>
+
+        <h2 id="quickstart">2. Quick Start</h2>
+        <p>Ensure you have <code>terraform</code>, <code>ansible</code>, and <code>aws-cli</code> installed.</p>
+        
+        <h3>Environment Setup</h3>
+        <div class="code-wrapper">
+            <pre><code>aws configure --profile default
+export AWS_REGION=ap-southeast-1</code></pre>
+        </div>
+
+        <h2 id="dev-diary">3. Dev Diary: Challenges & Solutions</h2>
+        <p>Real-world battles fought during this deployment.</p>
+
+        <h3>Challenge 1: The "AWS Not Found" Error</h3>
+        <p><strong>Problem:</strong> Ansible failed at ECR Login because the vanilla Ubuntu AMI lacks the AWS CLI.<br>
+        <strong>Fix:</strong> Updated playbook to install dependencies first.</p>
+        <div class="code-wrapper">
+            <pre><code>- name: Download AWS CLI
+  get_url:
+    url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+    dest: "/tmp/awscliv2.zip"
+
+- name: Install AWS CLI
+  command: /tmp/aws/install --update</code></pre>
+        </div>
+
+        <h3>Challenge 2: The "Localhost" Monitoring Trap</h3>
+        <p><strong>Problem:</strong> Grafana running in Docker couldn't reach Prometheus via <code>localhost:9090</code>.<br>
+        <strong>Fix:</strong> Configured Grafana to use the <strong>Private IP</strong> of the host server.</p>
+        <div class="link-box">
+            <span>http://10.0.0.136:9090</span>
+            <button class="copy-btn" onclick="copyText('http://10.0.0.136:9090', this)">Copy</button>
+        </div>
+
+        <h2 id="how-to-run">4. How to Run</h2>
+        
+        <h3>Step 1: Provision Infrastructure</h3>
+        <div class="code-wrapper">
+            <pre><code>cd terraform
+terraform init
+terraform plan -out=plan.tfplan
+terraform apply "plan.tfplan"</code></pre>
+        </div>
+
+        <h3>Step 2: Configure Servers (Ansible)</h3>
+        <p>Run these from the Ansible Controller node.</p>
+        <div class="code-wrapper">
+            <pre><code># 1. Install Docker
+ansible-playbook -i inventory.ini install_docker.yml
+
+# 2. Deploy Web App
+ansible-playbook -i inventory.ini deploy_web.yml
+
+# 3. Setup Monitoring
+ansible-playbook -i inventory.ini deploy_monitor.yml</code></pre>
+        </div>
+
+        <h2 id="live-urls">5. Live URLs</h2>
+        <p>Access the deployed applications.</p>
+
+        <div class="link-box">
+            <span>https://web.adlipunt.cc</span>
+            <button class="copy-btn" onclick="copyText('https://web.adlipunt.cc', this)">Copy Link</button>
+        </div>
+
+        <div class="link-box">
+            <span>https://monitoring.adlipunt.cc</span>
+            <button class="copy-btn" onclick="copyText('https://monitoring.adlipunt.cc', this)">Copy Link</button>
+        </div>
+
+        <div class="link-box">
+            <span>https://github.com/smartfox91/devops-bootcamp-project</span>
+            <button class="copy-btn" onclick="copyText('https://github.com/smartfox91/devops-bootcamp-project', this)">Copy Link</button>
+        </div>
+
+        <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.875rem;">
+            <p>Documentation maintained by Adli Jaaffar.</p>
+        </footer>
+    </main>
+</div>
+
+<script>
+    // Automatically add copy buttons to all code blocks
+    document.querySelectorAll('.code-wrapper').forEach(wrapper => {
+        const button = document.createElement('button');
+        button.className = 'copy-btn';
+        button.innerText = 'Copy';
+        
+        button.addEventListener('click', () => {
+            const code = wrapper.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                button.innerText = 'Copied!';
+                setTimeout(() => button.innerText = 'Copy', 2000);
+            });
+        });
+        
+        wrapper.appendChild(button);
+    });
+
+    // Function for specific link copy buttons
+    function copyText(text, btnElement) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = btnElement.innerText;
+            btnElement.innerText = 'Copied!';
+            setTimeout(() => btnElement.innerText = originalText, 2000);
+        });
+    }
+</script>
+
+</body>
+</html>
