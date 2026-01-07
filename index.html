@@ -193,7 +193,7 @@
 
     <main class="main-content">
         <h1>Trust Me, I’m a DevOps Engineer</h1>
-        <p class="lead">Setup, Deployment & Monitoring Guide. <span class="badge badge-green">v1.0.0</span></p>
+        <p class="lead">Setup, Deployment & Monitoring Guide. <span class="badge badge-green">v1.1.0</span></p>
         
         <p>This repository provisions, configures, and deploys a small web + monitoring stack on AWS using Terraform and Ansible. It serves as a proof-of-concept for secure, private networking with public exposure via load balancers and tunnels.</p>
 
@@ -226,14 +226,28 @@ export AWS_REGION=ap-southeast-1</code></pre>
         <div class="code-wrapper">
             <pre><code>- name: Download AWS CLI
   get_url:
-    url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
-    dest: "/tmp/awscliv2.zip"
+    url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" ...
 
 - name: Install AWS CLI
   command: /tmp/aws/install --update</code></pre>
         </div>
 
-        <h3>Challenge 2: The "Localhost" Monitoring Trap</h3>
+        <h3>Challenge 2: The "Stale Image" Persistency</h3>
+        <p><strong>Problem:</strong> The Web Server refused to show the new version of the app (e.g., name changes) and stubbornly stuck to the old Docker image, even after a successful pipeline run.<br>
+        <strong>Fix:</strong> The "Fresh Start" Protocol. The caching on both local and remote ends was too aggressive. I had to explicitly delete the local image to force a new build, and remove the container on the instance.</p>
+        <div class="code-wrapper">
+            <pre><code># 1. Local: Delete old image & rebuild
+docker rmi <image-id>
+docker build -t my-app .
+docker push ...
+
+# 2. Remote: Stop & Remove old container
+docker stop my-app
+docker rm my-app
+# (Then run Ansible to pull the fresh image)</code></pre>
+        </div>
+
+        <h3>Challenge 3: The "Localhost" Monitoring Trap</h3>
         <p><strong>Problem:</strong> Grafana running in Docker couldn't reach Prometheus via <code>localhost:9090</code>.<br>
         <strong>Fix:</strong> Configured Grafana to use the <strong>Private IP</strong> of the host server.</p>
         <div class="link-box">
