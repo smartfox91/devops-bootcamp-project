@@ -175,6 +175,16 @@
         .badge-green { background-color: #d1fae5; color: #065f46; }
         .badge-blue { background-color: #dbeafe; color: #1e40af; }
         .badge-purple { background-color: #f3e8ff; color: #6b21a8; }
+        .badge-yellow { background-color: #fef3c7; color: #92400e; }
+
+        /* Screenshot styling */
+        .screenshot {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
 
     </style>
 </head>
@@ -186,29 +196,43 @@
         <ul>
             <li><a href="#overview">Architecture Overview</a></li>
             <li><a href="#quickstart">Quick Start</a></li>
-            <li><a href="#dev-diary">Dev Diary (Challenges)</a></li>
             <li><a href="#infra-config">Infra & Configuration</a></li>
-            <li><a href="#how-to-run">How to Run</a></li>
+            <li><a href="#monitoring">Monitoring & Observability</a></li>
+            <li><a href="#bonus">Bonus Achievements</a></li>
+            <li><a href="#dev-diary">Dev Diary (Challenges)</a></li>
             <li><a href="#live-urls">Live URLs</a></li>
         </ul>
     </aside>
 
     <main class="main-content">
         <h1>Trust Me, I’m a DevOps Engineer</h1>
-        <p class="lead">Setup, Deployment & Monitoring Guide. <span class="badge badge-green">v1.4.0</span></p>
+        <p class="lead">Final Project 2025. <span class="badge badge-green">v1.6.0</span></p>
         
-        <p>This repository provisions, configures, and deploys a small web + monitoring stack on AWS using Terraform and Ansible. It serves as a proof-of-concept for secure, private networking with public exposure via load balancers and tunnels.</p>
+        <p>This repository provisions, configures, and deploys a secure web + monitoring stack on AWS using Terraform and Ansible. It demonstrates a complete DevOps lifecycle from Infrastructure as Code (IaC) to automated deployment and observability.</p>
 
         <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 2rem 0;">
 
         <h2 id="overview">1. Architecture Overview</h2>
-        <p>All infrastructure is provisioned in the <strong>ap-southeast-1 (Singapore)</strong> region.</p>
+        <p>All infrastructure is provisioned in the <strong>ap-southeast-1 (Singapore)</strong> region, designed with security and scalability in mind.</p>
+        
+        <h3>Key Components</h3>
         <ul>
-            <li><strong>Infrastructure:</strong> Terraform (VPC, Subnets, EC2, IAM, ECR).</li>
-            <li><strong>Configuration:</strong> Ansible (Docker installation, App deployment, Monitoring setup).</li>
-            <li><strong>Application:</strong> Dockerized web app with custom environment variables.</li>
-            <li><strong>Monitoring:</strong> Prometheus & Grafana (node_exporter).</li>
+            <li><strong>State Management:</strong> Terraform state is stored securely in an <strong>S3 Backend</strong> (<code>devops-bootcamp-terraform-mohdadlijaaffar</code>) with encryption enabled.</li>
+            <li><strong>Network:</strong> A custom VPC with segregated <strong>Public</strong> (Web) and <strong>Private</strong> (Ansible/Monitor) subnets.</li>
+            <li><strong>Security:</strong> 
+                <ul>
+                    <li>Security Groups restricted to necessary ports (80, 9100, 22).</li>
+                    <li><strong>No Public IP</strong> for Monitoring or Ansible servers.</li>
+                    <li>Access managed via <strong>AWS Systems Manager (SSM)</strong>.</li>
+                </ul>
+            </li>
+            <li><strong>Application:</strong> Dockerized web app deployed via ECR.</li>
         </ul>
+
+        <div class="code-wrapper">
+            <img src="images/systems_manager.png" alt="AWS Systems Manager Dashboard" class="screenshot">
+            <p style="text-align: center; font-size: 0.85rem; color: #6b7280;">Fig 1: Managing nodes securely via AWS Systems Manager.</p>
+        </div>
 
         <h2 id="quickstart">2. Quick Start</h2>
         <p>Ensure you have <code>terraform</code>, <code>ansible</code>, and <code>aws-cli</code> installed.</p>
@@ -219,7 +243,56 @@
 export AWS_REGION=ap-southeast-1</code></pre>
         </div>
 
-        <h2 id="dev-diary">3. Dev Diary: Challenges & Solutions</h2>
+        <h2 id="infra-config">3. Infrastructure & Configuration</h2>
+        
+        <h3>3.1 Terraform (IaC) <span class="badge badge-purple">30% Coverage</span></h3>
+        <p>The infrastructure is fully automated. Key configuration highlights:</p>
+        <ul>
+            <li><strong>VPC & Routing:</strong> Public subnet uses an Internet Gateway; Private subnet uses a <strong>NAT Gateway</strong> for secure outbound updates.</li>
+            <li><strong>Compute:</strong> <code>for_each</code> loops used to standardize <code>t3.micro</code> instances with IAM roles attached.</li>
+        </ul>
+
+        <h3>3.2 Ansible (Config Management) <span class="badge badge-purple">25% Coverage</span></h3>
+        <p>Automation is handled by the Ansible Controller in the private subnet:</p>
+        <ul>
+            <li><strong>Install Docker:</strong> Automated installation of Docker Engine on all nodes.</li>
+            <li><strong>Web Deployment:</strong> Pulls image from ECR, handles ECR Login via AWS CLI, and deploys the app.</li>
+            <li><strong>Monitoring Setup:</strong> Deploys Node Exporter, Prometheus, and Grafana containers.</li>
+        </ul>
+
+        <h2 id="monitoring">4. Monitoring & Observability <span class="badge badge-purple">20% Coverage</span></h2>
+        <p>The stack provides real-time insights into infrastructure health.</p>
+
+        <h3>Metrics Collected</h3>
+        <p>Prometheus scrapes the Web Server (via Node Exporter on port 9100) for:</p>
+        <ul>
+            <li><strong>CPU Usage</strong></li>
+            <li><strong>Memory (RAM) Usage</strong></li>
+            <li><strong>Disk Usage</strong></li>
+        </ul>
+
+        <h3>Visualization</h3>
+        <p>Grafana visualizes these metrics using the "Node Exporter Full" dashboard. Access is secured via a <strong>Cloudflare Tunnel</strong>, ensuring the monitoring server remains private with no open inbound ports.</p>
+        
+        <img src="images/grafana_dashboard.png" alt="Grafana Dashboard" class="screenshot">
+
+        <h2 id="bonus">5. Bonus Achievements <span class="badge badge-yellow">+10% Bonus</span></h2>
+        <p>Beyond the core requirements, the following advanced features were implemented:</p>
+
+        <div class="link-box" style="background-color: #fffbeb; border-color: #fcd34d;">
+            <span><strong>1. CI/CD Pipeline:</strong> GitHub Actions configured to build Docker images and push to ECR automatically on commit.</span>
+        </div>
+        <div class="link-box" style="background-color: #fffbeb; border-color: #fcd34d;">
+            <span><strong>2. Self-Hosted Runner:</strong> Setup a local GitHub Runner for direct deployment pipelines (active on-demand).</span>
+        </div>
+        <div class="link-box" style="background-color: #fffbeb; border-color: #fcd34d;">
+            <span><strong>3. Zero-Trust Access:</strong> Implemented AWS Systems Manager (SSM) for shell access, eliminating the need for SSH keys or Bastion hosts.</span>
+        </div>
+        <div class="link-box" style="background-color: #fffbeb; border-color: #fcd34d;">
+            <span><strong>4. Cloudflare Tunnel:</strong> Monitoring server is completely isolated from the public internet, accessible only via secure tunnel.</span>
+        </div>
+
+        <h2 id="dev-diary">6. Dev Diary: Challenges & Solutions</h2>
         <p>Real-world battles fought during this deployment.</p>
 
         <h3>Challenge 1: The "AWS Not Found" Error</h3>
@@ -237,15 +310,6 @@ export AWS_REGION=ap-southeast-1</code></pre>
         <h3>Challenge 2: The "Stale Image" Persistency</h3>
         <p><strong>Problem:</strong> The Web Server refused to show the new version of the app and stuck to the old Docker image.<br>
         <strong>Fix:</strong> The "Fresh Start" Protocol. I updated the playbook to explicitly stop and remove the old container before starting the new one.</p>
-        <div class="code-wrapper">
-            <pre><code>- name: Stop running container
-  command: "docker stop my-app"
-  ignore_errors: yes
-
-- name: Remove old container
-  command: "docker rm my-app"
-  ignore_errors: yes</code></pre>
-        </div>
 
         <h3>Challenge 3: The "Localhost" Monitoring Trap</h3>
         <p><strong>Problem:</strong> Grafana running in Docker couldn't reach Prometheus via <code>localhost:9090</code>.<br>
@@ -255,78 +319,7 @@ export AWS_REGION=ap-southeast-1</code></pre>
             <button class="copy-btn" onclick="copyText('http://10.0.0.136:9090', this)">Copy</button>
         </div>
 
-        <h2 id="infra-config">4. Infrastructure & Configuration</h2>
-        
-        <h3>4.1 Infrastructure (Terraform) <span class="badge badge-purple">IaC</span></h3>
-        <p>The infrastructure code in <code>terraform/</code> fully automates the AWS environment. Key design decisions include:</p>
-        
-        <h4>A. Network Segmentation (<code>vpc.tf</code>)</h4>
-        <p>I architected a secure VPC (<code>10.0.0.0/24</code>) with strict segregation:</p>
-        <ul>
-            <li><strong>Public Subnet (<code>10.0.0.0/25</code>):</strong> Hosts the Web Server and NAT Gateway. It has a direct route to the Internet Gateway (IGW).</li>
-            <li><strong>Private Subnet (<code>10.0.0.128/25</code>):</strong> Hosts the Ansible Controller and Monitoring Server. These instances have <strong>NO public IPs</strong>. They access the internet (for updates/Docker pull) solely via the NAT Gateway.</li>
-        </ul>
-
-        <h4>B. Compute Strategy (<code>ec2.tf</code>)</h4>
-        <p>I used a <code>for_each</code> loop to modularize the instance creation, ensuring standard tagging and config:</p>
-        <ul>
-            <li><strong>Static Private IPs:</strong> Hardcoded IPs (<code>10.0.0.5</code>, <code>10.0.0.135</code>, <code>10.0.0.136</code>) were used to make the Ansible Inventory predictable.</li>
-            <li><strong>IAM Integration:</strong> Every instance is attached to a <code>devops-ssm-role</code> (defined in <code>iam.tf</code>). This grants <strong>AmazonSSMManagedInstanceCore</strong> permissions, allowing me to console into private servers without needing a Bastion Host or SSH keys.</li>
-        </ul>
-
-        <h4>C. Identity & Access (IAM & Keys)</h4>
-        <p>To secure access to the infrastructure and container registry, I provisioned specific identity resources:</p>
-        <ul>
-            <li><strong>ECR Management User (<code>ecruser</code>):</strong> A dedicated IAM user created to handle ECR operations (push/pull permissions) separately from the root account.</li>
-            <li><strong>SSH Key Pair (<code>adli-my-key</code>):</strong> A securely generated key pair used for SSH access to the instances when SSM is not sufficient (e.g., initial debugging).</li>
-        </ul>
-
-        <h3>4.2 Configuration (Ansible) <span class="badge badge-purple">Automation</span></h3>
-        <p>Once Terraform provisions the servers, Ansible takes over to configure them. The setup is broken down into modular playbooks:</p>
-
-        <h4>A. Controller Setup</h4>
-        <p>The <code>ansible.cfg</code> is configured to disable <code>host_key_checking</code>. This is critical for automation, preventing the script from hanging on the "Are you sure you want to connect?" prompt.</p>
-
-        <h4>B. Web Server Deployment (<code>deploy_web.yml</code>)</h4>
-        <p>This playbook handles the full application lifecycle:</p>
-        <ul>
-            <li><strong>Dependency Management:</strong> Manually downloads and installs the AWS CLI v2 using <code>unzip</code> and the official Amazon binary.</li>
-            <li><strong>ECR Authentication:</strong> Uses the installed CLI to authenticate Docker with Amazon ECR.</li>
-            <li><strong>Deployment:</strong> Pulls the latest image and restarts the container using <code>--restart always</code> for high availability.</li>
-            <li><strong>Monitoring Sidecar:</strong> Deploys <code>node-exporter</code> alongside the app to expose system metrics (CPU, RAM, Disk) to Prometheus.</li>
-        </ul>
-
-        <h4>C. Monitoring Stack (<code>deploy_monitor.yml</code>)</h4>
-        <p>This playbook sets up the observability layer on the private server:</p>
-        <ul>
-            <li><strong>Configuration:</strong> Copies a custom <code>prometheus.yml</code> that targets the Web Server's private IP (<code>10.0.0.5:9100</code>).</li>
-            <li><strong>Containers:</strong> Launches <strong>Prometheus</strong> (Data collection) and <strong>Grafana</strong> (Visualization) via Docker.</li>
-        </ul>
-
-        <h2 id="how-to-run">5. How to Run</h2>
-        
-        <h3>Step 1: Provision Infrastructure</h3>
-        <div class="code-wrapper">
-            <pre><code>cd terraform
-terraform init
-terraform plan -out=plan.tfplan
-terraform apply "plan.tfplan"</code></pre>
-        </div>
-
-        <h3>Step 2: Configure Servers (Ansible)</h3>
-        <p>Run these from the Ansible Controller node.</p>
-        <div class="code-wrapper">
-            <pre><code># 1. Install Docker
-ansible-playbook -i inventory.ini install_docker.yml
-
-# 2. Deploy Web App
-ansible-playbook -i inventory.ini deploy_web.yml
-
-# 3. Setup Monitoring
-ansible-playbook -i inventory.ini deploy_monitor.yml</code></pre>
-        </div>
-
-        <h2 id="live-urls">6. Live URLs</h2>
+        <h2 id="live-urls">7. Live URLs</h2>
         <p>Access the deployed applications.</p>
 
         <div class="link-box">
